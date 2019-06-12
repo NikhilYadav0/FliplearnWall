@@ -4,73 +4,50 @@ import { ScrollView, View, StyleSheet, Platform } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Icon from "react-native-vector-icons/AntDesign";
 import { faHeart } from "@fortawesome/free-regular-svg-icons";
-import wall from "../Api/getWall";
+import ApiCall from "./api_calls";
 import VisualFeature from './feature_type'
 import Comment from './comment'
 import Divider from './divider'
+import DateModiier from './FormattingHelpers/month'
+
+
 export default class Wall extends Component {
-  state = { userMessages: Array(0) };
-  loadData(pageNum, pageSize) {
-    wall
-      .get("/getUserMessage", {
-        params: {
-          type: "#fliplearn",
-          blocked: 0,
-          startDate: null,
-          endDate: null,
-          pageNum: pageNum,
-          pageSize
-        }
-      })
-      .then(response => {
-        this.setState({ userMessages: response.data.message });
-        console.log(response.data.message);
-      })
-      .catch(err => {
-        console.log("****"+err);
-      });
+  state = { userMessages:[]};
+  
+  componentDidMount(){
+    if(!localStorage.hasOwnProperty('WallMessage')){
+      ApiCall.loadDataOnWall(1,10).then(response=>{
+        localStorage.setItem('WallMessage',JSON.stringify(response.data.message))
+        this.setState(
+        {userMessages:response.data.message} 
+        )}
+      )
+    }
+    else{
+      var storedUserMessages=JSON.parse(localStorage.getItem('WallMessage'))
+      console.log(storedUserMessages)
+      this.setState(
+          {userMessages:storedUserMessages} 
+      )
+    }
   }
-  constructor(props) {
-    super(props);
-    this.loadData(1, 10);
-  }
+  
   MessageList = () => {
-    var messages = this.state.userMessages.map((item, i) => {
-      var date=item.created.substring(8, 10);
-      var month=item.created.substring(5,7);
-      switch(month){
-        case "01":
-          month="JANUARY";break;
-        case "02":
-            month="FEBRUARY";break;
-        case "03":
-            month="MARCH";break;
-        case "04":
-            month="APRIL";break;
-        case "05":
-            month="MAY";break;
-        case "06":
-            month="JUNE";break;
-        case "07":
-            month="JULY";break;
-        case "08":
-            month="AUGUST";break;
-        case "09":
-            month="SEPTEMBER";break;
-        case "10":
-          month="OCTOBER";break; 
-        case "11":
-          month="NOVEMBER";break;
-        case "12":
-          month="DECEMBER";break;
-      }
+      var messages = this.state.userMessages.map((item, i) => {
+      var DateMonth=DateModiier(item.created);
+      var date=DateMonth.date,month=DateMonth.month;
       return (
-        <View key={i} >
+        <View key={i}  style={{opacity:1}} >
           <Text style={[{display:"flex",justifyContent:"center",marginTop:1},s.title]}>{date} {month}</Text>
-          <Card>
+          <Card containerStyle={{margin:0}}>
             <Text style={s.title}> {item.title}</Text>
             {Platform.OS === "web" ? <br /> : <Text>{"\n"}</Text>}
+
+
+            {/* {<----------  videos here ------------->} */}
             <VisualFeature item={item}/>
+            
+            
             {Platform.OS === "web" ? <br /> : <Text>{"\n"}</Text>}
             <Text>
               {item.messageText}
@@ -97,17 +74,21 @@ export default class Wall extends Component {
     return <View >{messages}</View>;
   };
 
+  handleOnScroll = event => {
+    console.log("HELLO")
+  }
+
   render() {
     return (
-      <ScrollView>
-        <Card containerStyle={{margin:100}}>
-          <this.MessageList />
-        </Card>
+      <ScrollView scrollEventThrottle={16}  onScroll={this.handleOnScroll}> 
+            
+            <Card containerStyle={{marginTop:-10}}>
+              <this.MessageList />
+            </Card>
       </ScrollView>
     );
   }
 }
-
 
 
 const s = StyleSheet.create({

@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 const inst=axios.create({
-        baseURL:'https://bl.fliplearn.com/message',
+        baseURL:'https://bl.fliplearn.com',
         headers:{
             loginId:'vinay2.admin',
             profileCode:'8914881053',

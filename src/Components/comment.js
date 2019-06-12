@@ -1,20 +1,19 @@
 import React, { Component } from "react";
 import { ListItem,Avatar } from "react-native-elements";
 import { View, FlatList,Text } from "react-native";
-import wall from "../Api/getWall";
 import { Input } from 'react-native-elements';
+import 'bootstrap/dist/css/bootstrap.css';
+import nameFirstLetter from './FormattingHelpers/namFirstLetter'
+import ApiCall from './api_calls'
 
 export default class Comment extends Component {
+    constructor(props){
+        super(props)
+        this.state={comments:props.item,countClicked:0}
+    }
+    
     renderRow({ item }) {
-        var a=item.firstName.split(" ");
-        console.log(a)
-        var firstLetter=""
-        for(var i=0;i<a.length;i++){
-            if(a[i]==="")continue;
-            firstLetter=firstLetter+a[i][0]
-        }
-        
-
+        var firstLetter=nameFirstLetter(item)
         return (
         <ListItem
             containerStyle={{backgroundColor:'#ecf2f8',borderRadius:2}}
@@ -33,36 +32,22 @@ export default class Comment extends Component {
         />
         );
     }
-    constructor(props){
-        super(props)
-        var item=props.item
-        this.state={comments:item,countClicked:0}
-    }
-    loadComment=()=>{
 
-        var count=(this.state.countClicked)+1;
+    loadComment=()=>{
+        var count=this.state.countClicked+1
         var list=this.state.comments
-        wall.get('/getCommentsByMessageCode',{
-            params:{
-                messageCode:this.props.messageCode,
-                pageNum:count,
-                pageSize:5
-            }
-        }).then((response)=>{
-            console.log(list)
-            console.log(response.data.comments[0].comment)
+        ApiCall.loadCommentsonWall(count,this.props.messageCode).then(response=>{
             if(count===1){
                 list.length=0
             }
             list=list.concat(response.data.comments[0].comment)
-            console.log(list)
             this.setState({
                 comments:list,countClicked:count
             })
-        }).catch((err)=>{
-            console.log("*****************"+err)
         })
     }
+
+
     render() {
         return (
             <View style={{backgroundColor:'#ecf2f8',marginTop:10}}>
@@ -78,19 +63,18 @@ export default class Comment extends Component {
                     renderItem={this.renderRow}
                     keyExtractor={item => item.firstName}
                 />
-                <View style={{flexDirection:"row",marginTop:5,paddingLeft:5}}>
-                    <Avatar rounded 
-                        // source={(item.profileImg===null)?{title:firstLetter}: {source:{
-                        //     uri:item.profileImg
-                        // }}}
+                <View style={{flexDirection:"row",marginTop:5,paddingLeft:5,alignItems:"center"}}>
+                    <Avatar rounded
+                            source={{uri:"https://d1l59jsi25mzk9.cloudfront.net/abc_path/imgFromCam1558951963.PNG"}}
                     />
                     <Input placeholder='   Add a comment...' 
-                        containerStyle={{width:875,height:50}}
-                        inputContainerStyle={{width:875,
+                        containerStyle={{  width:"90%" ,marginBottom:5}}
+                        inputStyle={{padding:10}}
+                        inputContainerStyle={{ 
                         backgroundColor:'#ffffff',borderWidth: 0.5,borderColor: "#d6d7da"}
                     }/>
                 </View>
             </View>
         );
-  }
+    }
 }
