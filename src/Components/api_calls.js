@@ -1,5 +1,57 @@
 import reqFormat from '../Api/reqFormat' 
 import marketPlaceApiFormat from '../Api/marketplace_fliplearn'
+import postComment from '../Api/postComment'
+import postLike from '../Api/postLike'
+import classList from '../Api/classList'
+import chapsList from '../Api/chapsList'
+
+var loadSubjects=()=>{
+    return classList.get("/class",{
+        params:{
+            boardCode:"CBSE"
+        }
+    })
+}
+var loadChapTopics=(chapterId,ncertEbookEnable)=>{
+    return chapsList.get("/chapterTopics",{
+        params:{
+            chapterId,
+            ncertEbookEnable
+        }
+    })
+}
+
+var loadSubChaps=(subjectId)=>{
+    return chapsList.get("/booksChapters",{
+        params:{
+            subjectId,
+            ncertEbookEnable:1,
+            topicList:false
+        }
+    })
+}
+
+var postComments=(comment,messageCode,uuid)=>{
+    var data = {comment:{
+        comment,
+        uuid, 
+        messageCode
+    }}
+    return postComment.post("",data)
+}
+
+var likeMessage=(likedUuid,messageCode)=>{
+    var data={
+        messageCode, likedUuid
+    }
+    return postLike.post("/likeMessage",data)
+}
+var unlikeMessage=(likedUuid,messageCode)=>{
+    var data={
+        unlikeMessage:{messageCode, likedUuid}
+    }
+    return postLike.put("/unlikeMessage",data)
+}
 var loadDataOnWall=(pageNum, pageSize)=>{
     var reqPromise=reqFormat.get("/message/getUserMessage", {
         params: {
@@ -28,12 +80,12 @@ var loadNoticeBoardData=(pageNum,pageSize)=>{
     return reqPromise;
 }
 
-var loadCommentsonWall=(count,messageCode)=>{
+var loadCommentsonWall=(count,pageSize,messageCode)=>{
     return reqFormat.get('/message/getCommentsByMessageCode',{
         params:{
             messageCode:messageCode,
             pageNum:count,
-            pageSize:5
+            pageSize
         }
     })
 }
@@ -60,7 +112,8 @@ var getCategoryList=()=>{
 
 var ApiCall={loadCommentsonWall,
     loadDataOnWall,loadNoticeBoardData,
-    loadSchoolSpecific,getCategoryList}
+    loadSchoolSpecific,getCategoryList,postComments,likeMessage,unlikeMessage
+    ,loadSubjects,loadSubChaps,loadChapTopics}
 
 
 

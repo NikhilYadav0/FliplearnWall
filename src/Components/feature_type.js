@@ -1,5 +1,11 @@
 import React from "react";
-import { ScrollView, Platform, WebView, StyleSheet } from "react-native";
+import {
+  ScrollView,
+  Platform,
+  WebView,
+  StyleSheet,
+  Dimensions
+} from "react-native";
 import { Image } from "react-native-elements";
 
 export default class featureType extends React.Component {
@@ -25,7 +31,7 @@ export default class featureType extends React.Component {
           ) : (
             <WebView
               source={{ uri: uri }}
-              style={{ height: 306, width: 450 }}
+              style={{ height: 250,  alignSelf: 'stretch' }}
             />
           )}
         </ScrollView>
@@ -36,7 +42,7 @@ export default class featureType extends React.Component {
 
 var style = StyleSheet.create({
   image: {
-    width: "100%",
+    alignSelf: "stretch",
     height: 200,
     maxWidth: 350,
     borderRadius: 1,

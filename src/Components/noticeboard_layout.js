@@ -1,26 +1,43 @@
 import React from 'react'
-import {View,Text,ScrollView,StyleSheet,Image} from 'react-native'
+import {View,Text,ScrollView,StyleSheet,Image,Platform} from 'react-native'
 import {Card} from 'react-native-elements'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {faBullhorn} from "@fortawesome/free-solid-svg-icons"
 import DateModiier from './FormattingHelpers/month'
 import ApiCall from './api_calls'
 export default class Annoncement extends React.Component{
-    state={Notices:[]}
-    componentDidMount(){
-        if(localStorage.hasOwnProperty('Notices')){
+    state={Notices:[],page:1}
+    update=false;
+    constructor(props){
+        super(props)
+        if (Platform.OS === "web") {
+          window.addEventListener("scroll", this.handleOnScroll);
+        }
+      }
+    loadMoreNotice(loadMore){
+        if(localStorage.hasOwnProperty('Notices') && !loadMore){
             this.setState({Notices:JSON.parse(localStorage.getItem('Notices'))})
+            this.update=false;
         }
         else{
-            ApiCall.loadNoticeBoardData(1,10)
+            var page=this.state.page
+            if(loadMore)page++;
+            ApiCall.loadNoticeBoardData(page,10)
             .then(response=>{
-                localStorage.setItem("Notices",JSON.stringify(response.data.message))
+
+                if(!localStorage.hasOwnProperty('Notices') )
+                    localStorage.setItem("Notices",JSON.stringify(response.data.message))
                 console.log(response.data.message)
-                this.setState({Notices:response.data.message})
+                var notices=this.state.Notices
+                notices=notices.concat(response.data.message)
+                this.setState({Notices:notices,page})
+                this.update=false;
             })
         }
     }
-
+    componentWillMount(){
+        this.loadMoreNotice(false)
+      }
 
     AttachedMaterial=(item)=>{
         console.log(item)
@@ -41,7 +58,7 @@ export default class Annoncement extends React.Component{
         var DateMonth=DateModiier(item.created);
         var date=DateMonth.date,month=DateMonth.month;
             return (
-                <View>
+                <View key={ind}>
                     <Text style={[{display:"flex",
                         justifyContent:"center",
                         marginTop:1,marginBottom:10},
@@ -67,9 +84,16 @@ export default class Annoncement extends React.Component{
         return noticeView;
     }
     
+    handleOnScroll = event => {
+        if(((window.pageYOffset*1.0)/parseFloat(document.body.scrollHeight))>0.5 && !this.update ){
+            console.log('loadTime')
+            this.update=true;
+            this.loadMoreNotice(true)      
+        }
+    };
     render(){
         return (
-            <ScrollView >
+            <ScrollView onScroll={this.handleOnScroll}>
                 <Card containerStyle={{marginTop:-10}}>
                 <this.NoticesView />
                 </Card>

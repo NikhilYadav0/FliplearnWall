@@ -1,8 +1,8 @@
 import React from 'react'
-import {View,StyleSheet} from 'react-native'
+import {ScrollView,View,StyleSheet,Platform} from 'react-native'
 import {Card,Image,Text} from 'react-native-elements'
 import ApiCall from './api_calls'
-
+// import {Link} from 'react-router-dom'
 
 export default class LearnCardLayout extends React.Component{
     state={item:null,result:null}
@@ -15,25 +15,30 @@ export default class LearnCardLayout extends React.Component{
         })
     }
     componentDidMount(){
-        if(localStorage.hasOwnProperty('LearnCards')){
+        //TODO: check on android
+        if(Platform.OS==='web' && window.localStorage.hasOwnProperty('LearnCards')){
             console.log("from local storage")
-            var ob=JSON.parse(localStorage.getItem("LearnCards"))
+            var ob=JSON.parse(window.localStorage.getItem("LearnCards"))
             this.setState(ob);
         }
         else{
             console.log("helllllo")
             ApiCall.loadSchoolSpecific(21409234).then(response=>{
-                localStorage.setItem('LearnCards',JSON.stringify({
-                    item:response.data,
-                    result:this.state.result
-                }))
+                if(Platform.OS==='web'){
+                    window.localStorage.setItem('LearnCards',JSON.stringify({
+                        item:response.data,
+                        result:this.state.result
+                    }))
+                }
                 this.setState({item:response.data})
             })
             ApiCall.getCategoryList().then(response=>{
-                localStorage.setItem('LearnCards',JSON.stringify({
-                    item:this.state.item,
-                    result:response.data.result
-                }))
+                if(Platform.OS==='web'){
+                    window.localStorage.setItem('LearnCards',JSON.stringify({
+                        item:this.state.item,
+                        result:response.data.result
+                    }))
+                }
                 this.setState({result:response.data.result})
             })
         }
@@ -41,16 +46,18 @@ export default class LearnCardLayout extends React.Component{
     render(){
         var item=this.state.item
         var result=this.state.result
-        return (<View >
-            {(result!=null && item!=null)?(
+        return (<ScrollView >
+            {(result!==null && item!==null)?(
                 <View style={{flexDirection:"row",justifyContent:"center",flexWrap:'wrap'}}>
-                    <Card containerStyle={{width:"90%",maxWidth: 350}}>
-                        <Image style={style.image}
-                            source={{uri:`https://d1l59jsi25mzk9.cloudfront.net/${result[0].image}`}}
-                        />
-                    <Text style={style.title}>{result[0].name}</Text>
-                    <Text style={style.title}>{result[0].description}</Text>
-                    </Card>
+                    {/* <Link to={{pathname:"home/learn-explore"}} > */}
+                        <Card containerStyle={{width:"90%",maxWidth: 350}}>
+                            <Image style={style.image}
+                                source={{uri:`https://d1l59jsi25mzk9.cloudfront.net/${result[0].image}`}}
+                            />
+                        <Text style={style.title}>{result[0].name}</Text>
+                        <Text style={style.title}>{result[0].description}</Text>
+                        </Card>
+                    {/* </Link> */}
                     <Card containerStyle={{width:"90%",maxWidth: 350}}>
                         <Image style={style.image}
                             source={{uri:`https://d1l59jsi25mzk9.cloudfront.net/${result[1].image}`}}
@@ -70,8 +77,8 @@ export default class LearnCardLayout extends React.Component{
                         </View>
                     </Card>
                 </View>
-            ):null}
-        </View>)
+            ):(<Text>Not Able To Load .... Try Again :/</Text>)}
+        </ScrollView>)
     }
 }
 

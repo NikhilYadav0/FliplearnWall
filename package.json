@@ -35,11 +35,13 @@
     "react-dom": "^16.6.x",
     "react-hot-loader": "^4.8.8",
     "react-native": "0.55",
+    "react-native-canvas": "^0.1.33",
     "react-native-elements": "^1.1.0",
     "react-native-paper": "^2.15.2",
     "react-native-platform-touchable": "^1.1.1",
     "react-native-vector-icons": "^6.4.2",
     "react-native-web": "^0.10.x",
+    "react-router-dom": "^5.0.1",
     "react-scripts": "^3.0.1"
   },
   "devDependencies": {
