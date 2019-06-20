@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import { ListItem,Button,Image } from "react-native-elements";
 import { View, FlatList,Text,StyleSheet ,TouchableOpacity} from "react-native";
-// import { Input } from 'react-native-elements';
-// import nameFirstLetter from './FormattingHelpers/namFirstLetter'
+import { Input } from 'react-native-elements';
+import nameFirstLetter from './FormattingHelpers/namFirstLetter'
 import ApiCall from './api_calls'
-// import Icon from 'react-native-vector-icons'
+import Icon from 'react-native-vector-icons'
 import { Link } from "react-router-dom";
 
 export default class LearnExplore extends Component {

@@ -1,9 +1,9 @@
 import React from "react";
-// import "bootstrap/dist/css/bootstrap.css";
-// import { Tabs, Tab } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.css";
+import { Tabs, Tab } from "react-bootstrap";
 import { View, Dimensions } from "react-native";
 import Wall from "./wall";
-// import NoticeBoardLayout from "./noticeboard_layout";
+import NoticeBoardLayout from "./noticeboard_layout";
 import LearnLayout from "./learn_card_layout";
 export default class NavBar extends React.Component {
   componentWillMount() {

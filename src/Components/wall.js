@@ -98,7 +98,7 @@ export default class Wall extends Component {
                     style={item.selfLiked ? { color: "#FF0000" } : null}
                   />
                 ) : (
-                  <Icon name="hearto" />
+                  <Icon name={item.selfLiked ? "heart" : "hearto"} />
                 )}
                 <Text
                   onPress={() => this.likeButton(index)}
@@ -150,7 +150,7 @@ export default class Wall extends Component {
   render() {
     return (
       // <ScrollView onScroll={this.handleOnScroll}>
-      <ScrollView onScrollEndDrag={()=>{if(!update){this.update=true;this.loadMoreComponent(true)}}}>
+      <ScrollView onScrollEndDrag={()=>{if(!this.update){this.update=true;this.loadMoreComponent(true)}}}>
         <Card containerStyle={{ marginTop: -10 }}>
           <this.MessageList />
         </Card>

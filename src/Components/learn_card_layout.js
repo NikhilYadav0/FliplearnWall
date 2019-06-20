@@ -2,7 +2,7 @@ import React from 'react'
 import {ScrollView,View,StyleSheet,Platform} from 'react-native'
 import {Card,Image,Text} from 'react-native-elements'
 import ApiCall from './api_calls'
-// import {Link} from 'react-router-dom'
+import {Link} from 'react-router-dom'
 
 export default class LearnCardLayout extends React.Component{
     state={item:null,result:null}
@@ -49,7 +49,7 @@ export default class LearnCardLayout extends React.Component{
         return (<ScrollView >
             {(result!==null && item!==null)?(
                 <View style={{flexDirection:"row",justifyContent:"center",flexWrap:'wrap'}}>
-                    {/* <Link to={{pathname:"home/learn-explore"}} > */}
+                    <Link to={{pathname:"home/learn-explore"}} >
                         <Card containerStyle={{width:"90%",maxWidth: 350}}>
                             <Image style={style.image}
                                 source={{uri:`https://d1l59jsi25mzk9.cloudfront.net/${result[0].image}`}}
@@ -57,7 +57,7 @@ export default class LearnCardLayout extends React.Component{
                         <Text style={style.title}>{result[0].name}</Text>
                         <Text style={style.title}>{result[0].description}</Text>
                         </Card>
-                    {/* </Link> */}
+                    </Link>
                     <Card containerStyle={{width:"90%",maxWidth: 350}}>
                         <Image style={style.image}
                             source={{uri:`https://d1l59jsi25mzk9.cloudfront.net/${result[1].image}`}}

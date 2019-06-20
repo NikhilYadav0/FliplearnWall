@@ -2,12 +2,15 @@ import React from 'react'
 import {View,Text,ScrollView,StyleSheet,Image,Platform} from 'react-native'
 import {Card} from 'react-native-elements'
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import Icon from "react-native-vector-icons/AntDesign";
+
 import {faBullhorn} from "@fortawesome/free-solid-svg-icons"
 import DateModiier from './FormattingHelpers/month'
 import ApiCall from './api_calls'
 export default class Annoncement extends React.Component{
     state={Notices:[],page:1}
     update=false;
+    web=(Platform.OS==='web')
     constructor(props){
         super(props)
         if (Platform.OS === "web") {
@@ -15,8 +18,8 @@ export default class Annoncement extends React.Component{
         }
       }
     loadMoreNotice(loadMore){
-        if(localStorage.hasOwnProperty('Notices') && !loadMore){
-            this.setState({Notices:JSON.parse(localStorage.getItem('Notices'))})
+        if(this.web && window.localStorage.hasOwnProperty('Notices') && !loadMore){
+            this.setState({Notices:JSON.parse(window.localStorage.getItem('Notices'))})
             this.update=false;
         }
         else{
@@ -25,8 +28,8 @@ export default class Annoncement extends React.Component{
             ApiCall.loadNoticeBoardData(page,10)
             .then(response=>{
 
-                if(!localStorage.hasOwnProperty('Notices') )
-                    localStorage.setItem("Notices",JSON.stringify(response.data.message))
+                if(this.web && !window.localStorage.hasOwnProperty('Notices') )
+                    window.localStorage.setItem("Notices",JSON.stringify(response.data.message))
                 console.log(response.data.message)
                 var notices=this.state.Notices
                 notices=notices.concat(response.data.message)
@@ -43,10 +46,10 @@ export default class Annoncement extends React.Component{
         console.log(item)
         var base_url='https://d1l59jsi25mzk9.cloudfront.net/Events/'
         if(item.messageAssets===null) return null
-        var assets=item.messageAssets.assets.map((asset,ind)=>{
-            if(asset.fileType==="image"){
-                return (<Image key={ind} style={style.image}
-                    source={{uri:`${base_url+asset.systemFilename}`}}/>
+        var assets=item.messageAssets.assets.map((item,index)=>{
+            if(item.fileType==="image"){
+                return (<Image key={`${index}`} style={style.image}
+                    source={{uri:`${base_url+item.systemFilename}`}}/>
                 )
             }
             return null;
@@ -54,11 +57,11 @@ export default class Annoncement extends React.Component{
         return <View style={{flexDirection:"row",flexWrap:"wrap"}}>{assets}</View>
     }
     NoticesView=()=>{
-        var noticeView=this.state.Notices.map((item,ind)=>{
+        var noticeView=this.state.Notices.map((item,index)=>{
         var DateMonth=DateModiier(item.created);
         var date=DateMonth.date,month=DateMonth.month;
             return (
-                <View key={ind}>
+                <View key={`${index}`}>
                     <Text style={[{display:"flex",
                         justifyContent:"center",
                         marginTop:1,marginBottom:10},
@@ -66,9 +69,10 @@ export default class Annoncement extends React.Component{
                         {date} {month}
                     </Text>
                     <View style={{borderWidth:1,margin:5,borderColor:"#414141"}}>
-                        <View key={ind} style={{marginTop:-25, flexDirection:"row",alignItems:"center"}}>
+                        <View style={{marginTop:-25, flexDirection:"row",alignItems:"center"}}>
                             <Text  style={{margin:10,padding:5,color:"#ffffff",backgroundColor:"#5e5e5e"}}>
-                                <FontAwesomeIcon style={{marginLeft:5,marginRight:5,backgroundColor:"#5e5e5e"}} icon={faBullhorn} color="#ffffff" />
+                                {(Platform.OS==='web')?(<FontAwesomeIcon style={{marginLeft:5,marginRight:5,backgroundColor:"#5e5e5e"}} icon={faBullhorn} color="#ffffff" />)
+                                :(<Icon name="notification"/>)}
                                 {(item.type).toUpperCase()}
                             </Text>
                         </View>
@@ -93,7 +97,7 @@ export default class Annoncement extends React.Component{
     };
     render(){
         return (
-            <ScrollView onScroll={this.handleOnScroll}>
+            <ScrollView onScrollEndDrag={()=>{if(!this.update){this.update=true;this.loadMoreComponent(true)}}}>
                 <Card containerStyle={{marginTop:-10}}>
                 <this.NoticesView />
                 </Card>
