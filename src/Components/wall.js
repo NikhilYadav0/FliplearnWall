@@ -1,114 +1,163 @@
 import React, { Component } from "react";
 import { Card, Text } from "react-native-elements";
-import { ScrollView, View, StyleSheet, Platform } from "react-native";
+import {  } from "react-native-web";
+import { View,ScrollView, StyleSheet, Platform } from "react-native";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Icon from "react-native-vector-icons/AntDesign";
-import { faHeart } from "@fortawesome/free-regular-svg-icons";
-import wall from "../Api/getWall";
-import VisualFeature from './feature_type'
-import Comment from './comment'
-import Divider from './divider'
+import { faHeart as emptyHeart } from "@fortawesome/free-regular-svg-icons";
+import { faHeart as filledHeart } from "@fortawesome/free-solid-svg-icons";
+import ApiCall from "./api_calls";
+import VisualFeature from "./feature_type";
+import Comment from "./comment";
+import Divider from "./divider";
+import DateModiier from "./FormattingHelpers/month";
+
 export default class Wall extends Component {
-  state = { userMessages: Array(0) };
-  loadData(pageNum, pageSize) {
-    wall
-      .get("/getUserMessage", {
-        params: {
-          type: "#fliplearn",
-          blocked: 0,
-          startDate: null,
-          endDate: null,
-          pageNum: pageNum,
-          pageSize
-        }
-      })
-      .then(response => {
-        this.setState({ userMessages: response.data.message });
-        console.log(response.data.message);
-      })
-      .catch(err => {
-        console.log("****"+err);
-      });
-  }
+  state = { userMessages: [], page: 1 };
   constructor(props) {
     super(props);
-    this.loadData(1, 10);
+    if (Platform.OS === "web") {
+      window.onbeforeunload = function(e) {
+        localStorage.clear();
+      };
+      window.addEventListener("scroll", this.handleOnScroll);
+    }
   }
+  update = false;
+  loadMoreComponent(loadMore) {
+    if (Platform.OS !== "web" || (!localStorage.hasOwnProperty("WallMessage") || loadMore)) {
+      var page = this.state.page;
+      if (loadMore) page++;
+      ApiCall.loadDataOnWall(page, 10).then(response => {
+        if (page === 1 && Platform.OS === "web" ) {
+          localStorage.setItem(
+            "WallMessage",
+            JSON.stringify(response.data.message)
+          );
+        }
+        var messages = this.state.userMessages;
+        messages = messages.concat(response.data.message);
+        this.setState({ userMessages: messages, page });
+        this.update = false;
+      });
+    } else if(Platform.OS === "web") {
+      var storedUserMessages = JSON.parse(localStorage.getItem("WallMessage"));
+      console.log(storedUserMessages);
+      this.setState({ userMessages: storedUserMessages });
+      this.update = false;
+    }
+  }
+  componentWillMount() {
+    this.loadMoreComponent(false);
+  }
+  likeButton = i => {
+    console.log("clicked");
+    var message = this.state.userMessages;
+    message[i].selfLiked = !message[i].selfLiked;
+    if (message[i].selfLiked)
+      ApiCall.likeMessage(`${101004608030}`, message[i].messageCode);
+    else ApiCall.unlikeMessage(`${101004608030}`, message[i].messageCode);
+    this.setState({ userMessages: message });
+  };
   MessageList = () => {
-    var messages = this.state.userMessages.map((item, i) => {
-      var date=item.created.substring(8, 10);
-      var month=item.created.substring(5,7);
-      switch(month){
-        case "01":
-          month="JANUARY";break;
-        case "02":
-            month="FEBRUARY";break;
-        case "03":
-            month="MARCH";break;
-        case "04":
-            month="APRIL";break;
-        case "05":
-            month="MAY";break;
-        case "06":
-            month="JUNE";break;
-        case "07":
-            month="JULY";break;
-        case "08":
-            month="AUGUST";break;
-        case "09":
-            month="SEPTEMBER";break;
-        case "10":
-          month="OCTOBER";break; 
-        case "11":
-          month="NOVEMBER";break;
-        case "12":
-          month="DECEMBER";break;
-      }
+    var messages = this.state.userMessages.map((item, index) => {
+      var DateMonth = DateModiier(item.created);
+      var date = DateMonth.date,
+        month = DateMonth.month;
+        // return (<Text> Hello!! </Text>)
       return (
-        <View key={i} >
-          <Text style={[{display:"flex",justifyContent:"center",marginTop:1},s.title]}>{date} {month}</Text>
-          <Card>
-            <Text style={s.title}> {item.title}</Text>
-            {Platform.OS === "web" ? <br /> : <Text>{"\n"}</Text>}
-            <VisualFeature item={item}/>
-            {Platform.OS === "web" ? <br /> : <Text>{"\n"}</Text>}
+        <View key={index} >
+            <Text
+              style={[
+                { display: "flex", justifyContent: "center", marginTop: 1 },
+                s.title
+              ]}
+            >
+              {date} {month}
+            </Text>
+          <Card containerStyle={{ margin: 0 }}>
+              <Text style={s.title}> {item.title}</Text>
+              <Text>{"\n"}</Text>
+          
+            <VisualFeature item={item} />
+            
+            <Text>{"\n"}</Text>
             <Text>
               {item.messageText}
-              {Platform.OS === "web" ? <br /> : <Text>{"\n"}</Text>}
+              <Text>{"\n"}</Text>
               {item.likedCount} Likes | {item.comments[0].commentCount} Comments
             </Text>
-            <Divider/>
-            <View style={{flex:1,flexDirection:"row"}}>
-              {Platform.OS === "web" ? (
-                <FontAwesomeIcon icon={faHeart} />
-              ) : (
-                <Icon name="hearto" />
-              )}
-              <Text style={[s.title,{fontSize: 12}]}> Like </Text>
-            </View>
-            <Comment comCount={item.comments[0].commentCount} 
-                      messageCode={item.messageCode} 
-                      item={item.comments[0].comment}
-                    />
+            <Divider />
+        
+            <View style={{ flex: 1, flexDirection: "row" }}>
+              <View style={{ flex: 1, flexDirection: "row" }}>
+                {Platform.OS === "web" ? (
+                  <FontAwesomeIcon
+                    title="likeButtton"
+                    icon={item.selfLiked ? filledHeart : emptyHeart}
+                    style={item.selfLiked ? { color: "#FF0000" } : null}
+                  />
+                ) : (
+                  <Icon name={item.selfLiked ? "heart" : "hearto"} />
+                )}
+                <Text
+                  onPress={() => this.likeButton(index)}
+                  style={[
+                    s.title,
+                    { fontSize: 12 },
+                    item.selfLiked ? { color: "#FF0000" } : null
+                  ]}
+                >
+                  {item.selfLiked ? "  Liked" : "  Like"}
+                </Text>
+              </View>
+              <Text
+                style={{ position: "absolute", right: 10, color: "#148bfe" }}
+                //TODO: check on android
+                // onPress={() => {
+                //   window.open(item.link);
+                // }}
+              >
+                Watch more Videos -->
+              </Text>
+            
+        </View>
+              <Comment
+                uuid={101004608030}
+                comCount={item.comments[0].commentCount}
+                messageCode={item.messageCode}
+                item={item.comments[0].comment}
+              />
           </Card>
         </View>
       );
     });
-    return <View >{messages}</View>;
+    return (<View>{messages}</View>);
   };
 
+  handleOnScrollforWindow = event => {
+    console.log(event);
+    if (
+      (window.pageYOffset * 1.0) / parseFloat(document.body.scrollHeight) >
+        0.5 &&
+      !this.update
+    ) {
+      console.log("loadTime");
+      this.update = true;
+      this.loadMoreComponent(true);
+    }
+  };
   render() {
     return (
-      <ScrollView>
-        <Card containerStyle={{margin:100}}>
+      // <ScrollView onScroll={this.handleOnScroll}>
+      <ScrollView onScrollEndDrag={()=>{if(!this.update){this.update=true;this.loadMoreComponent(true)}}}>
+        <Card containerStyle={{ marginTop: -10 }}>
           <this.MessageList />
         </Card>
       </ScrollView>
     );
   }
 }
-
-
 
 const s = StyleSheet.create({
   title: {
